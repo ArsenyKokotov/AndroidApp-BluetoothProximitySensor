@@ -20,12 +20,16 @@ import com.example.xzone.Database.DatabaseHelper;
 
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
+import java.util.Date;
 
 import static com.example.xzone.ForegroundRun.CHANNEL_1_ID;
 
 public class ServiceClass extends Service {
 
     protected DatabaseHelper dbHelper;
+
+    public static String entry_time;
+    public static String exit_time;
 
     @Override
     public void onCreate() {
@@ -57,13 +61,28 @@ public class ServiceClass extends Service {
 
                     if  (arduinoMsg.equals("in")) {
                         Calendar c = Calendar.getInstance();
-                        SimpleDateFormat df = new SimpleDateFormat("HH");
-                        String formattedDate = df.format(c.getTime());
-                        int hour = Integer.parseInt(formattedDate);
-                        dbHelper.incrementFrequency(name, hour);
+                        SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd kk:mm:ss");
+                        //String formattedDate = df.format(c.getTime());
+                        //int hour = Integer.parseInt(formattedDate);
+                        //dbHelper.incrementFrequency(name, hour);
+                        entry_time=df.format(c.getTime());
                         addNotification(1);
                     } else if (arduinoMsg.equals("out")) {
                         //somebody exited the zone
+                        Calendar c = Calendar.getInstance();
+                        SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd kk:mm:ss");
+                        exit_time=df.format(c.getTime());
+
+                        try {
+                            Date d1=df.parse(entry_time);
+                            Date d2=df.parse(exit_time);
+                            long diff=d2.getTime()-d1.getTime();
+                            dbHelper.insert_DetectionData(name, entry_time, exit_time, diff);
+                        } catch (Exception e) {
+                            //System.out.println("Hello World");
+                        }
+
+
                         addNotification(2);
                     } else if (arduinoMsg.equals("stuck")) {
                         //something is stuck inside the zone for about a minute
@@ -88,37 +107,39 @@ public class ServiceClass extends Service {
 
     public void addNotification(int i) {
 
-        String title="default";
-        String content="default";
-        Calendar c = Calendar.getInstance();
-        SimpleDateFormat df = new SimpleDateFormat("HH");
-        String formattedDate = df.format(c.getTime());
+        if (MainActivity.notificationOnOff==true) {
+            String title = "default";
+            String content = "default";
+            Calendar c = Calendar.getInstance();
+            SimpleDateFormat df = new SimpleDateFormat("kk");
+            String formattedDate = df.format(c.getTime());
 
-        if (i==1) {
-            title="Penetration notification";
-            content="At "+ formattedDate + " hours something entered the zone!";
-        } else if (i==2) {
-            title="Exit notification";
-            content="Something exited the zone!";
-        } else if (i==3) {
-            title="Stuck notification";
-            content="Something is stuck inside the zone! Please clear it to allow application to function!";
+            if (i == 1) {
+                title = "Penetration notification";
+                content = "At " + formattedDate + " hours something entered the zone!";
+            } else if (i == 2) {
+                title = "Exit notification";
+                content = "Something exited the zone!";
+            } else if (i == 3) {
+                title = "Stuck notification";
+                content = "Something is stuck inside the zone! Please clear it to allow application to function!";
+            }
+
+
+            NotificationCompat.Builder builder = new NotificationCompat.Builder(this)
+                    .setSmallIcon(R.mipmap.ic_launcher_round)
+                    .setContentTitle(title)
+                    .setContentText(content)
+                    .setPriority(NotificationCompat.PRIORITY_HIGH)
+                    .setCategory(NotificationCompat.CATEGORY_MESSAGE);
+
+            Intent notificationIntent = new Intent(this, MainActivity.class);
+            PendingIntent contentIntent = PendingIntent.getActivity(this, 0, notificationIntent, PendingIntent.FLAG_UPDATE_CURRENT);
+            builder.setContentIntent(contentIntent);
+
+            NotificationManager manager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
+            manager.notify(0, builder.build());
         }
-
-
-        NotificationCompat.Builder builder = new NotificationCompat.Builder(this)
-                .setSmallIcon(R.mipmap.ic_launcher_round)
-                .setContentTitle(title)
-                .setContentText(content)
-                .setPriority(NotificationCompat.PRIORITY_HIGH)
-                .setCategory(NotificationCompat.CATEGORY_MESSAGE);
-
-        Intent notificationIntent = new Intent(this, MainActivity.class);
-        PendingIntent contentIntent = PendingIntent.getActivity(this, 0, notificationIntent, PendingIntent.FLAG_UPDATE_CURRENT);
-        builder.setContentIntent(contentIntent);
-
-        NotificationManager manager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
-        manager.notify(0, builder.build());
 
     }
 }

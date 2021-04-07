@@ -3,6 +3,7 @@ package com.example.xzone;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.graphics.Color;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
@@ -21,13 +22,15 @@ import com.example.xzone.Model.X_zone;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.Date;
 import java.util.List;
 
 import androidx.core.app.NotificationCompat;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
 
-
+import static com.example.xzone.ServiceClass.entry_time;
+import static com.example.xzone.ServiceClass.exit_time;
 
 
 public class SetZoneActivity extends AppCompatActivity {  //extends AppCompatActivity
@@ -43,8 +46,11 @@ public class SetZoneActivity extends AppCompatActivity {  //extends AppCompatAct
     protected List<X_zone> xzoneList;
     protected DatabaseHelper dbHelper;
 
-    public static String nameHolder;
+    //public static String nameHolder;
     private static Context mContext;
+
+    //protected static String entry_time;
+    //protected static String exit_time;
 
 
     @Override
@@ -103,8 +109,8 @@ public class SetZoneActivity extends AppCompatActivity {  //extends AppCompatAct
 
                     X_zone newZone = new X_zone(zoneName.getText().toString(), proximityLength.getText().toString());
                     dbHelper.insert_Xzone(newZone);
-                    dbHelper.createXzoneTable(zoneName.getText().toString());
-                    nameHolder=zoneName.getText().toString();
+                    //dbHelper.createXzoneTable(zoneName.getText().toString());
+                    MainActivity.nameHolder=zoneName.getText().toString();
 
                     Intent serviceIntent = new Intent(mContext, ServiceClass.class);
                     serviceIntent.putExtra("name", zoneName.getText().toString());
@@ -127,6 +133,9 @@ public class SetZoneActivity extends AppCompatActivity {  //extends AppCompatAct
             @Override
             public void onClick(View v) {
                 MainActivity.connectedThread.write("restart");
+                Intent serviceIntent = new Intent(mContext, ServiceClass.class);
+                serviceIntent.putExtra("name", MainActivity.nameHolder);
+                startService(serviceIntent);
             }
         });
     }
@@ -134,6 +143,15 @@ public class SetZoneActivity extends AppCompatActivity {  //extends AppCompatAct
     @Override
     protected void onStart() {
         super.onStart();
+
+        int color;
+        if (MainActivity.backgroundWhiteOrBlack==false) {
+            color = Color.parseColor("#545657");
+        } else {
+            color = Color.parseColor("#FFFFFF");
+        }
+        View view = SetZoneActivity.this.getWindow().getDecorView();
+        view.setBackgroundColor(color);
 
         xzoneList=dbHelper.getAllXzones();
 
@@ -173,18 +191,28 @@ public class SetZoneActivity extends AppCompatActivity {  //extends AppCompatAct
                         Toast.makeText(getApplicationContext(), "Sensor has stopped.", Toast.LENGTH_SHORT).show();
                     } else if (arduinoMsg.equals("in")) {
                         Calendar c = Calendar.getInstance();
-                        SimpleDateFormat df = new SimpleDateFormat("HH");
-                        String formattedDate = df.format(c.getTime());
-                        int hour = Integer.parseInt(formattedDate);
-                        dbHelper.incrementFrequency(nameHolder, hour);
+                        SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd kk:mm:ss");
+                        entry_time=df.format(c.getTime());
                         addNotification(1);
                     } else if (arduinoMsg.equals("out")) {
                         //somebody exited the zone
+                        Calendar c = Calendar.getInstance();
+                        SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd kk:mm:ss");
+                        exit_time=df.format(c.getTime());
+
+                        try {
+                            Date d1=df.parse(entry_time);
+                            Date d2=df.parse(exit_time);
+                            long diff=d2.getTime()-d1.getTime();
+                            dbHelper.insert_DetectionData(MainActivity.nameHolder, entry_time, exit_time, diff);
+                        } catch (Exception e) {
+                            //System.out.println("Hello World");
+                        }
                         addNotification(2);
                     } else if (arduinoMsg.equals("stuck")) {
                         //something is stuck inside the zone for about a minute
                         addNotification(3);
-                    } else if (arduinoMsg.equals("restarted")) {
+                    }  else if (arduinoMsg.equals("restarted")) {
                         Toast.makeText(getApplicationContext(), "Sensor has restarted.", Toast.LENGTH_SHORT).show();
                     }
                 }
@@ -207,38 +235,39 @@ public class SetZoneActivity extends AppCompatActivity {  //extends AppCompatAct
 
     public void addNotification(int i) {
 
-        String title="default";
-        String content="default";
-        Calendar c = Calendar.getInstance();
-        SimpleDateFormat df = new SimpleDateFormat("HH");
-        String formattedDate = df.format(c.getTime());
+        if (MainActivity.notificationOnOff==true) {
+            String title = "default";
+            String content = "default";
+            Calendar c = Calendar.getInstance();
+            SimpleDateFormat df = new SimpleDateFormat("kk");
+            String formattedDate = df.format(c.getTime());
 
-        if (i==1) {
-            title="Penetration notification";
-            content="At "+ formattedDate + " hours something entered the zone!";
-        } else if (i==2) {
-            title="Exit notification";
-            content="Something exited the zone!";
-        } else if (i==3) {
-            title="Stuck notification";
-            content="Something is stuck inside the zone! Please clear it to allow application to function!";
+            if (i == 1) {
+                title = "Penetration notification";
+                content = "At " + formattedDate + " hours something entered the zone!";
+            } else if (i == 2) {
+                title = "Exit notification";
+                content = "Something exited the zone!";
+            } else if (i == 3) {
+                title = "Stuck notification";
+                content = "Something is stuck inside the zone! Please clear it to allow application to function!";
+            }
+
+
+            NotificationCompat.Builder builder = new NotificationCompat.Builder(this)
+                    .setSmallIcon(R.mipmap.ic_launcher_round)
+                    .setContentTitle(title)
+                    .setContentText(content)
+                    .setPriority(NotificationCompat.PRIORITY_HIGH)
+                    .setCategory(NotificationCompat.CATEGORY_MESSAGE);
+
+            Intent notificationIntent = new Intent(this, MainActivity.class);
+            PendingIntent contentIntent = PendingIntent.getActivity(this, 0, notificationIntent, PendingIntent.FLAG_UPDATE_CURRENT);
+            builder.setContentIntent(contentIntent);
+
+            NotificationManager manager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
+            manager.notify(0, builder.build());
         }
-
-
-        NotificationCompat.Builder builder = new NotificationCompat.Builder(this)
-                .setSmallIcon(R.mipmap.ic_launcher_round)
-                .setContentTitle(title)
-                .setContentText(content)
-                .setPriority(NotificationCompat.PRIORITY_HIGH)
-                .setCategory(NotificationCompat.CATEGORY_MESSAGE);
-
-        Intent notificationIntent = new Intent(this, MainActivity.class);
-        PendingIntent contentIntent = PendingIntent.getActivity(this, 0, notificationIntent, PendingIntent.FLAG_UPDATE_CURRENT);
-        builder.setContentIntent(contentIntent);
-
-        NotificationManager manager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
-        manager.notify(0, builder.build());
-
     }
 
 

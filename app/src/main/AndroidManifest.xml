@@ -14,7 +14,10 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/Theme.Xzone">
-        <activity android:name=".StatActivity"></activity>
+        <activity android:name=".SettingsActivity"></activity>
+        <activity android:name=".RestartOldZoneActivity" />
+        <activity android:name=".TermsActivity" />
+        <activity android:name=".StatActivity" />
         <activity android:name=".HelpActivity" />
         <activity android:name=".SetZoneActivity" />
         <activity android:name=".SelectDeviceActivity" />
@@ -25,7 +28,8 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <service android:name=".ServiceClass"/>
+
+        <service android:name=".ServiceClass" />
     </application>
 
 </manifest>

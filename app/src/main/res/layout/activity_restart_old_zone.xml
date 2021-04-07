@@ -4,20 +4,10 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".StatActivity">
-
-    <ListView
-        android:id="@+id/dataTable"
-        android:layout_width="287dp"
-        android:layout_height="390dp"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/spinnerAnalysis"
-        app:layout_constraintVertical_bias="0.932" />
+    tools:context=".RestartOldZoneActivity">
 
     <Spinner
-        android:id="@+id/spinnerName"
+        android:id="@+id/spinnerOldZoneName"
         android:layout_width="363dp"
         android:layout_height="23dp"
         app:layout_constraintBottom_toBottomOf="parent"
@@ -26,14 +16,27 @@
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintVertical_bias="0.052" />
 
-    <Spinner
-        android:id="@+id/spinnerAnalysis"
-        android:layout_width="363dp"
-        android:layout_height="23dp"
+    <Button
+        android:id="@+id/buttonCalibrateOldZone"
+        android:layout_width="126dp"
+        android:layout_height="57dp"
+        android:text="Calibrate"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/spinnerName"
-        app:layout_constraintVertical_bias="0.033" />
+        app:layout_constraintTop_toBottomOf="@+id/spinnerOldZoneName"
+        app:layout_constraintVertical_bias="0.208" />
+
+    <Button
+        android:id="@+id/buttonSubmitOldZone"
+        android:layout_width="126dp"
+        android:layout_height="57dp"
+        android:text="Submit"
+        android:enabled="false"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/buttonCalibrateOldZone"
+        app:layout_constraintVertical_bias="0.208" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

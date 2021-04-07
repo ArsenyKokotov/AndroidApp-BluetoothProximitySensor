@@ -7,13 +7,22 @@ import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteException;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.util.Log;
+import android.util.Pair;
 import android.widget.Toast;
 
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+
+import com.example.xzone.Model.DayCount;
+import com.example.xzone.Model.HourCount;
 import com.example.xzone.Model.X_zone;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
+import java.util.Iterator;
 import java.util.List;
+import java.util.ListIterator;
 
 public class DatabaseHelper extends SQLiteOpenHelper {
     // Logcat tag
@@ -30,6 +39,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     // Table Names
     private static final String TABLE_HISTORY = "history";
     private static final String TABLE_DATA = "data";
+    public static final String TABLE_DETECT="detection";
 
     //common columns
     private static final String KEY_NAME="name"; //common to History and Frequency
@@ -37,17 +47,18 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     //History Table - column names
     private static final String KEY_HISTORY_PROXIMITY="proximity";
 
-    //Data Table - column names
-    private static final String KEY_DATA_HOUR="hour";
-    private static final String KEY_DATA_FREQUENCY="frequency";
+    //DETECT Table - columns names
+    public static final String KEY_ENTRY_TIME="entry_time";
+    public static final String KEY_EXIT_TIME="exit_time";
+    public static final String KEY_SPENT_TIME="spent_time";
 
     // Table Create Statements
     // HISTORY table create statement
 
     private static final String CREATE_TABLE_HISTORY ="CREATE TABLE " + TABLE_HISTORY + "(" + KEY_NAME + " TEXT," + KEY_HISTORY_PROXIMITY
             + " TEXT" + ")";
-    private static final String CREATE_TABLE_DATA ="CREATE TABLE " + TABLE_DATA + "(" + KEY_NAME + " TEXT," + KEY_DATA_HOUR
-            + " INTEGER," + KEY_DATA_FREQUENCY + " INTEGER" + ")";
+    public static final String CREATE_TABLE_DETECT="CREATE TABLE " + TABLE_DETECT + "(" + KEY_NAME + " TEXT," + KEY_ENTRY_TIME
+            + " TEXT," + KEY_EXIT_TIME + " TEXT," + KEY_SPENT_TIME + " INT" + ")";
 
     public DatabaseHelper(Context context) {
         super(context, DATABASE_NAME, null, DATABASE_VERSION);
@@ -58,18 +69,355 @@ public class DatabaseHelper extends SQLiteOpenHelper {
 
         // creating required tables
         db.execSQL(CREATE_TABLE_HISTORY);
-        db.execSQL(CREATE_TABLE_DATA);
+        db.execSQL(CREATE_TABLE_DETECT);
     }
 
     @Override
     public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
         // on upgrade drop older tables
         db.execSQL("DROP TABLE IF EXISTS " + TABLE_HISTORY);
-        db.execSQL("DROP TABLE IF EXISTS " + TABLE_DATA);
+        db.execSQL("DROP TABLE IF EXISTS " + TABLE_DETECT);
 
         // create new tables
         onCreate(db);
     }
+
+    //--------------------------------------------------------------------------------------------//
+
+    //insert data row into table
+    public long insert_DetectionData(String name, String entry_time, String exit_time, long difference) {
+        long id=-1;
+        SQLiteDatabase db = this.getWritableDatabase();
+
+        ContentValues contentValues = new ContentValues();
+        contentValues.put(KEY_NAME, name);
+        contentValues.put(KEY_ENTRY_TIME, entry_time);
+        contentValues.put(KEY_EXIT_TIME, exit_time);
+        contentValues.put(KEY_SPENT_TIME, difference);
+
+        try {
+            id = db.replaceOrThrow(TABLE_DETECT, null, contentValues);
+        } catch(SQLiteException e) {
+            Log.d(TAG, "Exception: " + e.getMessage());
+            Toast.makeText(context, "Operation Failed: "+ e.getMessage(), Toast.LENGTH_LONG).show();
+        } finally {
+            db.close();
+        }
+        return id;
+    }
+
+    public String findDayWithLongestEntryExitTime(String Zone_name) {
+        String statement = "There are no detected values for this X-zone.";
+        SQLiteDatabase db = this.getReadableDatabase();
+        Cursor cursor = null;
+        String day="";
+        int buffer_diff=0;
+
+        try {
+            cursor = db.query(TABLE_DETECT, null, null, null, null, null,  null);
+
+            if(cursor != null)
+            {
+                if(cursor.moveToFirst())
+                {
+
+                    do{
+                        //getting information from cursor
+
+                         String name = cursor.getString(cursor.getColumnIndex(KEY_NAME));
+                         String entry = cursor.getString(cursor.getColumnIndex(KEY_ENTRY_TIME));
+                         int diff = cursor.getInt(cursor.getColumnIndex(KEY_SPENT_TIME));
+
+                         //this will find only a single value
+                         if (Zone_name.equals(name) && diff>buffer_diff) { //comparing the times spent inside the zone to find the biggest one
+                             day=entry.substring(0,10); //get YYYY-MM_dd out of the string
+                             buffer_diff=diff;
+                         }
+
+                    } while(cursor.moveToNext());
+
+                    if (buffer_diff>0) {
+                        statement="The day with the longest time spent inside the zone was: "+ day;
+                    }
+                    return statement;
+                }
+            }
+        }
+        catch(Exception e){
+            Log.d(TAG, "Exception: " + e.getMessage());
+        } finally{
+            if(cursor != null)
+                cursor.close();
+
+            db.close();
+        }
+        return statement;
+    }
+
+    public String findHourWithLongestEntryExitTime(String Zone_name) {
+        String statement = "There are no detected values for this X-zone.";
+        SQLiteDatabase db = this.getReadableDatabase();
+        Cursor cursor = null;
+        String day="";
+        int buffer_diff=0;
+
+        try {
+            cursor = db.query(TABLE_DETECT, null, null, null, null, null,  null);
+
+            if(cursor != null)
+            {
+                if(cursor.moveToFirst())
+                {
+
+                    do{
+                        //getting information from cursor
+
+                        String name = cursor.getString(cursor.getColumnIndex(KEY_NAME));
+                        String entry = cursor.getString(cursor.getColumnIndex(KEY_ENTRY_TIME));
+                        int diff = cursor.getInt(cursor.getColumnIndex(KEY_SPENT_TIME));
+
+                        //this will find only a single value
+                        if (Zone_name.equals(name) && diff>buffer_diff) { //comparing the times spent inside the zone to find the biggest one
+                            day=entry.substring(11,13); //HH out of the string
+                            buffer_diff=diff;
+                        }
+
+                    } while(cursor.moveToNext());
+
+                    if (buffer_diff>0) {
+                        statement="The hour with the longest time spent inside the zone was: "+ day;
+                    }
+                    return statement;
+                }
+            }
+        }
+        catch(Exception e){
+            Log.d(TAG, "Exception: " + e.getMessage());
+        } finally{
+            if(cursor != null)
+                cursor.close();
+
+            db.close();
+        }
+        return statement;
+    }
+
+    public List<String> findTodayHourlyEntryCount(String Zone_name, String today) {
+
+            SQLiteDatabase db = this.getReadableDatabase();
+            Cursor cursor = null;
+
+
+            int[] hour={1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24};
+            int[] count={0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
+
+            try {
+                cursor = db.query(TABLE_DETECT, null, null, null, null, null,  null);
+
+                if(cursor != null)
+                {
+                    if(cursor.moveToFirst())
+                    {
+
+                        List<String> hourlyList=new ArrayList<>();;
+
+                        do{
+
+                            String name = cursor.getString(cursor.getColumnIndex(KEY_NAME));
+                            String entry = cursor.getString(cursor.getColumnIndex(KEY_ENTRY_TIME));
+
+                            if (Zone_name.equals(name) && entry.substring(0,10).equals(today)) { //select by zone name and by zone's observation day
+                                for (int i=0; i<hour.length; i++) {
+                                    if (Integer.parseInt(entry.substring(11,13))==hour[i]) { //select by zone's observation hour
+                                        count[i]+=1;
+                                    }
+                                }
+                            }
+
+                        } while(cursor.moveToNext());
+
+                        for (int i=0; i<hour.length; i++) {
+                            String statement=hour[i]+"h: "+count[i];
+                            hourlyList.add(statement);
+                        }
+                        return hourlyList;
+                    }
+                }
+            }
+            catch(Exception e){
+                Log.d(TAG, "Exception: " + e.getMessage());
+            } finally{
+                if(cursor != null)
+                    cursor.close();
+
+                db.close();
+            }
+            return Collections.emptyList();
+    }
+
+    public DayCount findDaysEntryCount(String Zone_name) {
+        SQLiteDatabase db = this.getReadableDatabase();
+        Cursor cursor = null;
+
+        List<String> dayList=new ArrayList<>();
+        List<Integer> dayCount=new ArrayList<>();
+        DayCount dcResults=new DayCount();
+
+        String buffer_day="";
+        int buffer_count=0;
+        int same_day=0;
+
+        try {
+            cursor = db.query(TABLE_DETECT, null, null, null, null, null,  null);
+
+            if(cursor != null)
+            {
+                if(cursor.moveToFirst())
+                {
+
+                    do {
+
+                        String name = cursor.getString(cursor.getColumnIndex(KEY_NAME));
+                        String entry = cursor.getString(cursor.getColumnIndex(KEY_ENTRY_TIME));
+
+                        if (Zone_name.equals(name)) { //select by zone name and by zone's observation day
+                            if (buffer_day.equals("")) {  //find first day of zone under observation
+                                buffer_day = entry.substring(0, 10);
+                                buffer_count = 1;
+                            } else if (buffer_day.equals(entry.substring(0, 10))) { //if its the same day but a different time
+                                ++buffer_count;
+                            } else if (!buffer_day.equals(entry.substring(0, 10))) { //if its a new day
+                                dayCount.add(buffer_count);
+                                dayList.add(buffer_day);
+                                buffer_day = entry.substring(0, 10);
+                                buffer_count = 1;
+                            }
+                        }
+
+                    } while(cursor.moveToNext());
+
+                     dayCount.add(buffer_count);
+                     dayList.add(buffer_day);
+
+
+                    dcResults.setDays(dayList);
+                    dcResults.setCount(dayCount);
+
+                    return dcResults;
+                }
+            }
+        }
+        catch(Exception e){
+            Log.d(TAG, "Exception: " + e.getMessage());
+        } finally{
+            if(cursor != null)
+                cursor.close();
+
+            db.close();
+        }
+        return dcResults;
+    }
+
+
+
+
+    public HourCount findHourlyCount(String Zone_name) {
+        SQLiteDatabase db = this.getReadableDatabase();
+        Cursor cursor = null;
+
+        String[] hours = {"01", "02", "03","04", "05", "06","07", "08", "09","10", "11", "12","13", "14", "15",
+                          "16", "17", "18","19", "20", "21","22", "23", "24"};
+        int[] count={0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,};
+
+        HourCount hcResults=new HourCount();
+
+        //List<String> hourCountList=new ArrayList<>();
+
+        try {
+            cursor = db.query(TABLE_DETECT, null, null, null, null, null,  null);
+
+            if(cursor != null)
+            {
+                if(cursor.moveToFirst())
+                {
+
+                    do{
+
+                        String name = cursor.getString(cursor.getColumnIndex(KEY_NAME));
+                        String entry = cursor.getString(cursor.getColumnIndex(KEY_ENTRY_TIME));
+
+                        if (Zone_name.equals(name)) {
+                            for (int i=0; i<hours.length; i++) { //loop through the hour array to compare hour values
+                                if (entry.substring(11,13).equals(hours[i])) { //once an equal hour is found increment count at right index and break loop
+                                    count[i]+=1;
+                                    break;
+                                }
+                            }
+                        }
+
+                    } while(cursor.moveToNext());
+
+                    List<String> h=new ArrayList<>();
+                    List<Integer> c=new ArrayList<>();
+
+                    for (int i=0; i<count.length; i++) {
+                       h.add(hours[i]);
+                       c.add(count[i]);
+                    }
+
+                    hcResults.setHours(h);
+                    hcResults.setCount(c);
+
+                    return hcResults;
+                }
+            }
+        }
+        catch(Exception e){
+            Log.d(TAG, "Exception: " + e.getMessage());
+        } finally{
+            if(cursor != null)
+                cursor.close();
+
+            db.close();
+        }
+        return hcResults;
+    }
+
+    public String findMostVisitedHour(String Zone_name) {
+        String result="No motion was detected in this zone";
+        HourCount buffer=findHourlyCount(Zone_name);
+        List<String> hours=buffer.getHours();
+        List<Integer> count=buffer.getCount();
+
+        if (!hours.isEmpty()) {
+            int index=count.indexOf(Collections.max(count,null));
+            result="The most visited hour is "+hours.get(index) + " with an entry count value of " + count.get(index);
+            return result;
+        }
+        return result;
+
+    }
+
+    public String findMostVisitedDay(String Zone_name) {
+        String result="No motion was detected in this zone";
+        DayCount buffer=findDaysEntryCount(Zone_name);
+        List<String> days=buffer.getDays();
+        List<Integer> count=buffer.getCount();
+
+        if (!days.isEmpty()) {
+            int index=count.indexOf(Collections.max(count,null));
+            result="The most visited day is "+days.get(index) + " with an entry count value of " + count.get(index);
+            return result;
+        }
+        return result;
+
+    }
+
+
+
+    //-------------------------------------------------------------------------------------------//
+    //-------------------------------------------------------------------------------------------//
+    //-------------------------------------------------------------------------------------------//
 
     public long insert_Xzone(X_zone Xzone) {
         long id=-1;
@@ -90,36 +438,6 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         }
 
         return id;
-    }
-
-    //insert into the DATA table 24 rows each representing an hour.
-    public void createXzoneTable(String name) {
-        int a=-1;
-        int[] hour={1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24};
-        int initial_frequency=0;
-        SQLiteDatabase db = this.getWritableDatabase();
-
-
-        for (int i=0; i<hour.length; i++) {
-
-            ContentValues someValues = new ContentValues();
-            someValues.put(KEY_NAME, name);
-            someValues.put(KEY_DATA_HOUR, hour[i]);
-            someValues.put(KEY_DATA_FREQUENCY,0);
-            db.insert(TABLE_DATA, null, someValues);
-
-            //String DATA_ROW_CREATION = "INSERT INTO " + TABLE_DATA + "(" + KEY_NAME +","+KEY_DATA_HOUR+","+KEY_DATA_FREQUENCY+")"+"VALUES("+
-                    //name +"," + hour[i] + "," + initial_frequency + ");";
-            //db.execSQL(DATA_ROW_CREATION);
-        }
-    }
-
-    //increment frequency inside a specific zone during a specific hour
-    public void incrementFrequency(String name, int hour) {
-        SQLiteDatabase db = this.getWritableDatabase();
-        String UPDATE_DATA="UPDATE " +TABLE_DATA+" SET " + KEY_DATA_FREQUENCY + " =" + KEY_DATA_FREQUENCY+ "+1 WHERE "+ KEY_NAME+"='"+ name +
-                "' AND "+ KEY_DATA_HOUR + "=" + hour +";";
-        db.execSQL(UPDATE_DATA);
     }
 
     public List<X_zone> getAllXzones() {
@@ -154,35 +472,6 @@ public class DatabaseHelper extends SQLiteOpenHelper {
             }
         }
         catch(Exception e){
-            Log.d(TAG, "Exception: " + e.getMessage());
-        } finally{
-            if(cursor != null)
-                cursor.close();
-
-            db.close();
-        }
-        return Collections.emptyList();
-    }
-
-    public List<String> getFreq(String name) {
-        SQLiteDatabase db = this.getReadableDatabase();
-        String query = "SELECT * FROM data WHERE name='" + name+"'";
-        Cursor cursor = db.rawQuery(query, null);
-
-        try {
-            if (cursor.moveToFirst() && cursor != null) {
-
-                List<String> freqList = new ArrayList<>();
-
-                do {
-                    String freq = cursor.getString(cursor.getColumnIndex(KEY_DATA_FREQUENCY));
-                    freqList.add(freq);
-                } while (cursor.moveToNext());
-
-                return freqList;
-            }
-
-        } catch(Exception e){
             Log.d(TAG, "Exception: " + e.getMessage());
         } finally{
             if(cursor != null)

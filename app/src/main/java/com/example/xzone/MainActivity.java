@@ -3,7 +3,6 @@ package com.example.xzone;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 import androidx.core.app.NotificationCompat;
-import androidx.core.app.NotificationManagerCompat;
 
 import android.app.NotificationManager;
 import android.app.PendingIntent;
@@ -31,9 +30,12 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
+import java.util.Date;
 import java.util.UUID;
 
 import static android.content.ContentValues.TAG;
+import static com.example.xzone.ServiceClass.entry_time;
+import static com.example.xzone.ServiceClass.exit_time;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -42,6 +44,8 @@ public class MainActivity extends AppCompatActivity {
     private static Button helpButton;
     private static Button zoneButton;
     private static Button statsButton;
+    private static Button continueButton;
+    private static Button settingsButton;
 
     //zone name
     private static TextView zoneName_tv;
@@ -63,6 +67,11 @@ public class MainActivity extends AppCompatActivity {
 
     protected DatabaseHelper dbHelper;
 
+    public static int TERMS_AND_CONDITIONS_FLAG=0;
+    public static String nameHolder;
+    public static boolean notificationOnOff=true; //true=on
+    public static boolean backgroundWhiteOrBlack=true; //true=white
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -72,9 +81,17 @@ public class MainActivity extends AppCompatActivity {
         helpButton=findViewById(R.id.buttonHelp);
         zoneButton=findViewById(R.id.buttonZone);
         statsButton=findViewById(R.id.buttonStat);
+        continueButton=findViewById(R.id.buttonRestartOldZone);
+        settingsButton=findViewById(R.id.buttonSettings);
+
         zoneName_tv=findViewById(R.id.textViewZoneName);
         toolbar = findViewById(R.id.toolbar);
         dbHelper = new DatabaseHelper(this);
+
+        if (TERMS_AND_CONDITIONS_FLAG==0) {
+            Intent intent = new Intent(MainActivity.this, TermsActivity.class);
+            startActivity(intent);
+        }
 
 
         //select Bluetooth device
@@ -132,6 +149,26 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
+        continueButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if (status==1) {
+                    Intent intent = new Intent(MainActivity.this, RestartOldZoneActivity.class);
+                    startActivity(intent);
+                } else {
+                    Toast.makeText(getApplicationContext(), "To observe an X-zone, please connect a Bluetooth device.", Toast.LENGTH_SHORT).show();
+                }
+            }
+        });
+
+        settingsButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent intent = new Intent(MainActivity.this, SettingsActivity.class);
+                startActivity(intent);
+            }
+        });
+
         //send information to Arduino
         //String zoneName = getIntent().getStringExtra("zoneName");
         //int proximityLength = getIntent().getIntExtra("proximityLength", 0);
@@ -170,6 +207,15 @@ public class MainActivity extends AppCompatActivity {
             zoneName_tv.setText(name);
         }
 
+        int color;
+        if (backgroundWhiteOrBlack==false) {
+            color = Color.parseColor("#545657");
+        } else {
+            color = Color.parseColor("#FFFFFF");
+        }
+        View view = MainActivity.this.getWindow().getDecorView();
+        view.setBackgroundColor(color);
+
         ///*
         //Second most important piece of Code. GUI Handler
         handler = new Handler(Looper.getMainLooper()) {
@@ -198,16 +244,28 @@ public class MainActivity extends AppCompatActivity {
 
                         //when motion is detected add some functionality Sprint 2
                         if (arduinoMsg.equals("in")) {
-                            //somebody entered the zone
                             Calendar c = Calendar.getInstance();
-                            SimpleDateFormat df = new SimpleDateFormat("HH");
-                            String formattedDate = df.format(c.getTime());
-                            int hour = Integer.parseInt(formattedDate);
-                            dbHelper.incrementFrequency(name, hour);
+                            SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd kk:mm:ss");
+                            //String formattedDate = df.format(c.getTime());
+                            //int hour = Integer.parseInt(formattedDate);
+                            //dbHelper.incrementFrequency(name, hour);
+                            entry_time=df.format(c.getTime());
                             addNotification(1);
 
                         } else if (arduinoMsg.equals("out")) {
                             //somebody exited the zone
+                            Calendar c = Calendar.getInstance();
+                            SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd kk:mm:ss");
+                            exit_time=df.format(c.getTime());
+
+                            try {
+                                Date d1=df.parse(entry_time);
+                                Date d2=df.parse(exit_time);
+                                long diff=d2.getTime()-d1.getTime();
+                                dbHelper.insert_DetectionData(nameHolder, entry_time, exit_time, diff);
+                            } catch (Exception e) {
+                                //System.out.println("Hello World");
+                            }
                             addNotification(2);
                         } else if (arduinoMsg.equals("stuck")) {
                             //something is stuck inside the zone for about a minute
@@ -217,11 +275,16 @@ public class MainActivity extends AppCompatActivity {
                         break;
 
 
+
+
+
+
+
                 }
             }
         };
 
-        // */
+
     }
 // ============================ Thread to Create Bluetooth Connection =================================== //
 
@@ -359,53 +422,46 @@ public class MainActivity extends AppCompatActivity {
 
     private void addNotification(int i) {
 
-        String title="default";
-        String content="default";
-        Calendar c = Calendar.getInstance();
-        SimpleDateFormat df = new SimpleDateFormat("HH");
-        String formattedDate = df.format(c.getTime());
+        if (notificationOnOff==true) {
+            String title = "default";
+            String content = "default";
+            Calendar c = Calendar.getInstance();
+            SimpleDateFormat df = new SimpleDateFormat("kk");
+            String formattedDate = df.format(c.getTime());
 
-        if (i==1) {
-            title="Penetration notification";
-            content="At "+ formattedDate + " hours something entered the zone!";
-        } else if (i==2) {
-            title="Exit notification";
-            content="Something exited the zone!";
-        } else if (i==3) {
-            title="Stuck notification";
-            content="Something is stuck inside the zone! Please clear it to allow application to function!";
+            if (i == 1) {
+                title = "Penetration notification";
+                content = "At " + formattedDate + " hours something entered the zone!";
+            } else if (i == 2) {
+                title = "Exit notification";
+                content = "Something exited the zone!";
+            } else if (i == 3) {
+                title = "Stuck notification";
+                content = "Something is stuck inside the zone! Please clear it to allow application to function!";
+            }
+
+            NotificationCompat.Builder builder = new NotificationCompat.Builder(this)
+                    .setSmallIcon(R.mipmap.ic_launcher_round)
+                    .setContentTitle(title)
+                    .setContentText(content)
+                    .setPriority(NotificationCompat.PRIORITY_HIGH)
+                    .setLights(Color.parseColor("#ffffffff"), 5000, 2000)
+                    .setCategory(NotificationCompat.CATEGORY_MESSAGE);
+
+
+            Intent notificationIntent = new Intent(this, MainActivity.class);
+            PendingIntent contentIntent = PendingIntent.getActivity(this, 0, notificationIntent, PendingIntent.FLAG_UPDATE_CURRENT);
+            builder.setContentIntent(contentIntent);
+
+            NotificationManager manager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
+            manager.notify(0, builder.build());
         }
-
-        NotificationCompat.Builder builder = new NotificationCompat.Builder(this)
-                .setSmallIcon(R.mipmap.ic_launcher_round)
-                .setContentTitle(title)
-                .setContentText(content)
-                .setPriority(NotificationCompat.PRIORITY_HIGH)
-                .setLights(Color.parseColor("#ffffffff"), 5000, 2000)
-                .setCategory(NotificationCompat.CATEGORY_MESSAGE);
-
-
-        Intent notificationIntent = new Intent(this, MainActivity.class);
-        PendingIntent contentIntent = PendingIntent.getActivity(this, 0, notificationIntent, PendingIntent.FLAG_UPDATE_CURRENT);
-        builder.setContentIntent(contentIntent);
-
-        NotificationManager manager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
-        manager.notify(0, builder.build());
 
     }
 
     // ============================ Terminate Connection at BackPress ====================== //
     @Override
     public void onBackPressed() {
-        // Terminate Bluetooth Connection and close app
-        if (createConnectThread != null){
-            createConnectThread.cancel();
-            status=0;
-        }
-
-        connectButton.setText("Connect");
-        toolbar.setSubtitle("Device is not connected");
-        connectButton.setEnabled(true);
 
         Intent a = new Intent(Intent.ACTION_MAIN);
         a.addCategory(Intent.CATEGORY_HOME);
