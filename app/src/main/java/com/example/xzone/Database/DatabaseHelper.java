@@ -202,7 +202,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         return statement;
     }
 
-    public List<String> findTodayHourlyEntryCount(String Zone_name, String today) {
+    public List<Integer> findTodayHourlyEntryCount(String Zone_name, String today) {
 
             SQLiteDatabase db = this.getReadableDatabase();
             Cursor cursor = null;
@@ -219,7 +219,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
                     if(cursor.moveToFirst())
                     {
 
-                        List<String> hourlyList=new ArrayList<>();;
+                        List<Integer> hourlyList=new ArrayList<>();;
 
                         do{
 
@@ -237,8 +237,9 @@ public class DatabaseHelper extends SQLiteOpenHelper {
                         } while(cursor.moveToNext());
 
                         for (int i=0; i<hour.length; i++) {
-                            String statement=hour[i]+"h: "+count[i];
-                            hourlyList.add(statement);
+                            //String statement=hour[i]+"h: "+count[i];
+                            //hourlyList.add(statement);
+                            hourlyList.add(count[i]);
                         }
                         return hourlyList;
                     }
