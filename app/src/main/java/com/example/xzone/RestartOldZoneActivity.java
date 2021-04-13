@@ -5,10 +5,12 @@ import androidx.core.app.NotificationCompat;
 
 import android.app.NotificationManager;
 import android.app.PendingIntent;
+import android.content.ContentResolver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.graphics.Color;
+import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
@@ -54,7 +56,7 @@ public class RestartOldZoneActivity extends AppCompatActivity {
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);   //show back button
 
         buttonCalibrate=findViewById(R.id.buttonCalibrateOldZone);
-        buttonSubmit=findViewById(R.id.buttonSubmitOldZone);
+        buttonSubmit=findViewById(R.id.buttonDeleteOldZone);
         spinnerOldZoneName=findViewById(R.id.spinnerOldZoneName);
         dbHelper = new DatabaseHelper(this);
         xzoneList=dbHelper.getAllXzones();
@@ -62,7 +64,7 @@ public class RestartOldZoneActivity extends AppCompatActivity {
 
 
         List<String> names = new ArrayList<>();
-        names.add("Choose your Xzone");
+        names.add("Choose your Zone-X");
         for (int i = 0; i < xzoneList.size(); i++) {
             String temp1=xzoneList.get(i).getName();
             names.add(temp1);
@@ -91,7 +93,8 @@ public class RestartOldZoneActivity extends AppCompatActivity {
             @Override
             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
                 String buffer=spinnerOldZoneName.getSelectedItem().toString();
-                if (!buffer.equals("Choose your Xzone")) {
+                oldZoneName="";
+                if (!buffer.equals("Choose your Zone-X")) {
                     oldZoneName=buffer;
 
                     for (int i=0; i<xzoneList.size(); i++) {
@@ -100,23 +103,23 @@ public class RestartOldZoneActivity extends AppCompatActivity {
                             break;
                         }
                     }
-
-
                 }
             }
 
             @Override
             public void onNothingSelected(AdapterView<?> parent) {
-
+                Toast.makeText(getApplicationContext(), "Select a Zone-X", Toast.LENGTH_SHORT).show();
             }
         });
 
         buttonCalibrate.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if (!oldZoneName.equals("")) {
+                if (!oldZoneName.equals("Choose your Zone-X") && !oldZoneName.equals("") ) {
                     String msg =">" + oldZoneProximityLength;
                     MainActivity.connectedThread.write(msg);
+                } else {
+                    Toast.makeText(getApplicationContext(), "Select a Zone-X", Toast.LENGTH_SHORT).show();
                 }
             }
         });
@@ -137,6 +140,11 @@ public class RestartOldZoneActivity extends AppCompatActivity {
                 stopService(serviceIntent); //stop old service
                 serviceIntent.putExtra("name", oldZoneName);
                 startService(serviceIntent); //start new service
+
+                finish();
+                overridePendingTransition(0, 0);
+                startActivity(getIntent());
+                overridePendingTransition(0, 0);
             }
         });
 
@@ -192,7 +200,7 @@ public class RestartOldZoneActivity extends AppCompatActivity {
         return true;
     }
 
-    private void addNotification(int i) {
+    public void addNotification(int i) {
 
         if (MainActivity.notificationOnOff==true) {
             String title = "default";
@@ -202,24 +210,66 @@ public class RestartOldZoneActivity extends AppCompatActivity {
             String formattedDate = df.format(c.getTime());
 
             if (i == 1) {
+                Uri soundUri = Uri.parse(ContentResolver.SCHEME_ANDROID_RESOURCE + "://"+ getApplicationContext().getPackageName() + "/" + R.raw.alarm);
                 title = "Penetration notification";
                 content = "At " + formattedDate + " hours something entered the zone!";
+                NotificationCompat.Builder builder = new NotificationCompat.Builder(this)
+                        .setSmallIcon(R.mipmap.ic_launcher_round)
+                        .setContentTitle(title)
+                        .setContentText(content)
+                        .setPriority(NotificationCompat.PRIORITY_HIGH)
+                        .setSound(soundUri)
+                        .setVibrate(new long[]{0, 500, 1000})
+                        .setCategory(NotificationCompat.CATEGORY_MESSAGE);
+
+                Intent notificationIntent = new Intent(this, MainActivity.class);
+                PendingIntent contentIntent = PendingIntent.getActivity(this, 0, notificationIntent, PendingIntent.FLAG_UPDATE_CURRENT);
+                builder.setContentIntent(contentIntent);
+
+                NotificationManager manager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
+                manager.notify(0, builder.build());
             } else if (i == 2) {
                 title = "Exit notification";
                 content = "Something exited the zone!";
+                NotificationCompat.Builder builder = new NotificationCompat.Builder(this)
+                        .setSmallIcon(R.mipmap.ic_launcher_round)
+                        .setContentTitle(title)
+                        .setContentText(content)
+                        .setPriority(NotificationCompat.PRIORITY_HIGH)
+                        .setCategory(NotificationCompat.CATEGORY_MESSAGE);
+
+                Intent notificationIntent = new Intent(this, MainActivity.class);
+                PendingIntent contentIntent = PendingIntent.getActivity(this, 0, notificationIntent, PendingIntent.FLAG_UPDATE_CURRENT);
+                builder.setContentIntent(contentIntent);
+
+                NotificationManager manager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
+                manager.notify(0, builder.build());
             } else if (i == 3) {
                 title = "Stuck notification";
                 content = "Something is stuck inside the zone! Please clear it to allow application to function!";
+                NotificationCompat.Builder builder = new NotificationCompat.Builder(this)
+                        .setSmallIcon(R.mipmap.ic_launcher_round)
+                        .setContentTitle(title)
+                        .setContentText(content)
+                        .setPriority(NotificationCompat.PRIORITY_HIGH)
+                        .setCategory(NotificationCompat.CATEGORY_MESSAGE);
+
+                Intent notificationIntent = new Intent(this, MainActivity.class);
+                PendingIntent contentIntent = PendingIntent.getActivity(this, 0, notificationIntent, PendingIntent.FLAG_UPDATE_CURRENT);
+                builder.setContentIntent(contentIntent);
+
+                NotificationManager manager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
+                manager.notify(0, builder.build());
             }
 
-            NotificationCompat.Builder builder = new NotificationCompat.Builder(this)
-                    .setSmallIcon(R.mipmap.ic_launcher_round)
-                    .setContentTitle(title)
-                    .setContentText(content)
-                    .setPriority(NotificationCompat.PRIORITY_HIGH)
-                    .setLights(Color.parseColor("#ffffffff"), 5000, 2000)
-                    .setCategory(NotificationCompat.CATEGORY_MESSAGE);
 
+            /*
+                NotificationCompat.Builder builder = new NotificationCompat.Builder(this)
+                        .setSmallIcon(R.mipmap.ic_launcher_round)
+                        .setContentTitle(title)
+                        .setContentText(content)
+                        .setPriority(NotificationCompat.PRIORITY_HIGH)
+                        .setCategory(NotificationCompat.CATEGORY_MESSAGE);
 
             Intent notificationIntent = new Intent(this, MainActivity.class);
             PendingIntent contentIntent = PendingIntent.getActivity(this, 0, notificationIntent, PendingIntent.FLAG_UPDATE_CURRENT);
@@ -227,6 +277,8 @@ public class RestartOldZoneActivity extends AppCompatActivity {
 
             NotificationManager manager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
             manager.notify(0, builder.build());
+
+             */
         }
 
     }

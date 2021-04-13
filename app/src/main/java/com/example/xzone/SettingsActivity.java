@@ -45,6 +45,12 @@ public class SettingsActivity extends AppCompatActivity {
                 } else {
                     MainActivity.notificationOnOff=false;
                 }
+
+                finish();
+                overridePendingTransition(0, 0);
+                startActivity(getIntent());
+                overridePendingTransition(0, 0);
+
             }
         });
 
@@ -56,6 +62,11 @@ public class SettingsActivity extends AppCompatActivity {
                 } else {
                     MainActivity.backgroundWhiteOrBlack=false;
                 }
+
+                finish();
+                overridePendingTransition(0, 0);
+                startActivity(getIntent());
+                overridePendingTransition(0, 0);
             }
         });
 

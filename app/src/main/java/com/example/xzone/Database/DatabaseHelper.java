@@ -106,6 +106,12 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         return id;
     }
 
+    public void deleteZone(String id){
+        SQLiteDatabase db=this.getWritableDatabase();
+        db.delete(TABLE_HISTORY,"name = ?",new String[] {id});
+        db.delete(TABLE_DETECT,"name = ?",new String[] {id});
+    }
+
     public String findDayWithLongestEntryExitTime(String Zone_name) {
         String statement = "There are no detected values for this X-zone.";
         SQLiteDatabase db = this.getReadableDatabase();

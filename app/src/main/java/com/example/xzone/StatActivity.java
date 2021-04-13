@@ -128,6 +128,7 @@ public class StatActivity extends AppCompatActivity {
             @Override
             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
                 String analysisChoice=analysisSpinner.getSelectedItem().toString();
+
                 if (!analysisChoice.equals("Pick your data choice")) {
                     loadData(nameOfZone, analysisChoice);
                 }
@@ -217,6 +218,15 @@ public class StatActivity extends AppCompatActivity {
                 graph1.getGridLabelRenderer().setHorizontalAxisTitle("Hours");
                 graph1.getGridLabelRenderer().setTextSize(8);
                 graph1.getGridLabelRenderer().setNumHorizontalLabels(24); //
+
+                series.setOnDataPointTapListener(new OnDataPointTapListener() {
+                    @Override
+                    public void onTap(Series series, DataPointInterface dataPoint) {
+                        String x=String.valueOf(dataPoint.getX());
+                        String y=String.valueOf(dataPoint.getY());
+                        Toast.makeText(getApplicationContext(),  "hour "+ x + " number of entries: "+y, Toast.LENGTH_SHORT).show();
+                    }
+                });
 
             } else {
                 dataTable.setVisibility(View.VISIBLE);
@@ -318,6 +328,16 @@ public class StatActivity extends AppCompatActivity {
                 graph3.getGridLabelRenderer().setHorizontalAxisTitle("Hours");
                 graph3.getGridLabelRenderer().setTextSize(8);
                 graph3.getGridLabelRenderer().setNumHorizontalLabels(24); //
+
+                series.setOnDataPointTapListener(new OnDataPointTapListener() {
+                    @Override
+                    public void onTap(Series series, DataPointInterface dataPoint) {
+                        String x=String.valueOf(dataPoint.getX());
+                        String y=String.valueOf(dataPoint.getY());
+                        Toast.makeText(getApplicationContext(),  "hour "+ x + " number of entries: "+y, Toast.LENGTH_SHORT).show();
+                    }
+                });
+
             } else {
                 dataTable.setVisibility(View.VISIBLE);
                 dataRows.add("There are no detected values for this X-zone");

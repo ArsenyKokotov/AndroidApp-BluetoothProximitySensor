@@ -9,9 +9,11 @@ import android.app.PendingIntent;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothSocket;
+import android.content.ContentResolver;
 import android.content.Context;
 import android.content.Intent;
 import android.graphics.Color;
+import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
@@ -46,6 +48,7 @@ public class MainActivity extends AppCompatActivity {
     private static Button statsButton;
     private static Button continueButton;
     private static Button settingsButton;
+    private static Button deleteButton;
 
     //zone name
     private static TextView zoneName_tv;
@@ -83,6 +86,7 @@ public class MainActivity extends AppCompatActivity {
         statsButton=findViewById(R.id.buttonStat);
         continueButton=findViewById(R.id.buttonRestartOldZone);
         settingsButton=findViewById(R.id.buttonSettings);
+        deleteButton=findViewById(R.id.buttonDelete);
 
         zoneName_tv=findViewById(R.id.textViewZoneName);
         toolbar = findViewById(R.id.toolbar);
@@ -169,6 +173,14 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
+        deleteButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent intent = new Intent(MainActivity.this, DeleteActivity.class);
+                startActivity(intent);
+            }
+        });
+
         //send information to Arduino
         //String zoneName = getIntent().getStringExtra("zoneName");
         //int proximityLength = getIntent().getIntExtra("proximityLength", 0);
@@ -205,6 +217,19 @@ public class MainActivity extends AppCompatActivity {
 
         if (name!="") {
             zoneName_tv.setText(name);
+        }
+
+        //if bluetooth phone button is off
+        BluetoothAdapter mBluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
+        if ((!mBluetoothAdapter.isEnabled())) {
+            if (createConnectThread != null){
+                createConnectThread.cancel();
+                connectButton.setText("Connect");
+                toolbar.setSubtitle("Device is not connected");
+                status=0;
+            }
+            connectButton.setText("Connect");
+            toolbar.setSubtitle("Device is not connected");
         }
 
         int color;
@@ -420,9 +445,9 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    private void addNotification(int i) {
+    public void addNotification(int i) {
 
-        if (notificationOnOff==true) {
+        if (MainActivity.notificationOnOff==true) {
             String title = "default";
             String content = "default";
             Calendar c = Calendar.getInstance();
@@ -430,24 +455,66 @@ public class MainActivity extends AppCompatActivity {
             String formattedDate = df.format(c.getTime());
 
             if (i == 1) {
+                Uri soundUri = Uri.parse(ContentResolver.SCHEME_ANDROID_RESOURCE + "://"+ getApplicationContext().getPackageName() + "/" + R.raw.alarm);
                 title = "Penetration notification";
                 content = "At " + formattedDate + " hours something entered the zone!";
+                NotificationCompat.Builder builder = new NotificationCompat.Builder(this)
+                        .setSmallIcon(R.mipmap.ic_launcher_round)
+                        .setContentTitle(title)
+                        .setContentText(content)
+                        .setPriority(NotificationCompat.PRIORITY_HIGH)
+                        .setSound(soundUri)
+                        .setVibrate(new long[]{0, 500, 1000})
+                        .setCategory(NotificationCompat.CATEGORY_MESSAGE);
+
+                Intent notificationIntent = new Intent(this, MainActivity.class);
+                PendingIntent contentIntent = PendingIntent.getActivity(this, 0, notificationIntent, PendingIntent.FLAG_UPDATE_CURRENT);
+                builder.setContentIntent(contentIntent);
+
+                NotificationManager manager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
+                manager.notify(0, builder.build());
             } else if (i == 2) {
                 title = "Exit notification";
                 content = "Something exited the zone!";
+                NotificationCompat.Builder builder = new NotificationCompat.Builder(this)
+                        .setSmallIcon(R.mipmap.ic_launcher_round)
+                        .setContentTitle(title)
+                        .setContentText(content)
+                        .setPriority(NotificationCompat.PRIORITY_HIGH)
+                        .setCategory(NotificationCompat.CATEGORY_MESSAGE);
+
+                Intent notificationIntent = new Intent(this, MainActivity.class);
+                PendingIntent contentIntent = PendingIntent.getActivity(this, 0, notificationIntent, PendingIntent.FLAG_UPDATE_CURRENT);
+                builder.setContentIntent(contentIntent);
+
+                NotificationManager manager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
+                manager.notify(0, builder.build());
             } else if (i == 3) {
                 title = "Stuck notification";
                 content = "Something is stuck inside the zone! Please clear it to allow application to function!";
+                NotificationCompat.Builder builder = new NotificationCompat.Builder(this)
+                        .setSmallIcon(R.mipmap.ic_launcher_round)
+                        .setContentTitle(title)
+                        .setContentText(content)
+                        .setPriority(NotificationCompat.PRIORITY_HIGH)
+                        .setCategory(NotificationCompat.CATEGORY_MESSAGE);
+
+                Intent notificationIntent = new Intent(this, MainActivity.class);
+                PendingIntent contentIntent = PendingIntent.getActivity(this, 0, notificationIntent, PendingIntent.FLAG_UPDATE_CURRENT);
+                builder.setContentIntent(contentIntent);
+
+                NotificationManager manager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
+                manager.notify(0, builder.build());
             }
 
-            NotificationCompat.Builder builder = new NotificationCompat.Builder(this)
-                    .setSmallIcon(R.mipmap.ic_launcher_round)
-                    .setContentTitle(title)
-                    .setContentText(content)
-                    .setPriority(NotificationCompat.PRIORITY_HIGH)
-                    .setLights(Color.parseColor("#ffffffff"), 5000, 2000)
-                    .setCategory(NotificationCompat.CATEGORY_MESSAGE);
 
+            /*
+                NotificationCompat.Builder builder = new NotificationCompat.Builder(this)
+                        .setSmallIcon(R.mipmap.ic_launcher_round)
+                        .setContentTitle(title)
+                        .setContentText(content)
+                        .setPriority(NotificationCompat.PRIORITY_HIGH)
+                        .setCategory(NotificationCompat.CATEGORY_MESSAGE);
 
             Intent notificationIntent = new Intent(this, MainActivity.class);
             PendingIntent contentIntent = PendingIntent.getActivity(this, 0, notificationIntent, PendingIntent.FLAG_UPDATE_CURRENT);
@@ -455,6 +522,8 @@ public class MainActivity extends AppCompatActivity {
 
             NotificationManager manager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
             manager.notify(0, builder.build());
+
+             */
         }
 
     }

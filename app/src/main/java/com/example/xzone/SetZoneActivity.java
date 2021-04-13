@@ -1,9 +1,11 @@
 package com.example.xzone;
 
+import android.content.ContentResolver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.graphics.Color;
+import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
@@ -62,8 +64,6 @@ public class SetZoneActivity extends AppCompatActivity {  //extends AppCompatAct
 
         submitButton=findViewById(R.id.buttonSubmit);
         calibrateButton=findViewById(R.id.buttonCalibrate);
-        //zoneName=findViewById(R.id.editTextZoneName);
-        //proximityLength=findViewById(R.id.editTextProximityLength);
         zoneName=findViewById(R.id.autoCompleteTextView_ZoneName);
         proximityLength=findViewById(R.id.autoCompleteTextView_ProximityLength);
         stopButton=findViewById(R.id.buttonStop);
@@ -92,10 +92,24 @@ public class SetZoneActivity extends AppCompatActivity {  //extends AppCompatAct
             @Override
             public void onClick(View v) {
 
+                List<X_zone> zones=dbHelper.getAllXzones();
+
+                int name_check=0;
+
+                for (int i=0; i<zones.size(); i++) {
+                    String temp=zones.get(i).getName();
+                    if (temp.equals(zoneName.getText().toString())) {
+                        ++name_check;
+                        break;
+                    }
+                }
+
                 if (proximityLength.getText().toString().isEmpty() || zoneName.getText().toString().isEmpty()) {
                     Toast.makeText(getApplicationContext(), "Fill in the text boxes", Toast.LENGTH_SHORT).show();
                 } else if (Integer.parseInt(proximityLength.getText().toString())>500) {
                     Toast.makeText(getApplicationContext(), "Length must be less than 500 cm", Toast.LENGTH_SHORT).show();
+                } else if (name_check!=0) {
+                    Toast.makeText(getApplicationContext(), "Such a zone name is taken, please try another", Toast.LENGTH_SHORT).show();
                 } else {
                     String msg ="<" + proximityLength.getText().toString();
                     MainActivity.connectedThread.write(msg);
@@ -115,6 +129,11 @@ public class SetZoneActivity extends AppCompatActivity {  //extends AppCompatAct
                     Intent serviceIntent = new Intent(mContext, ServiceClass.class);
                     serviceIntent.putExtra("name", zoneName.getText().toString());
                     startService(serviceIntent);
+
+                    finish();
+                    overridePendingTransition(0, 0);
+                    startActivity(getIntent());
+                    overridePendingTransition(0, 0);
 
                 }
             }
@@ -156,24 +175,24 @@ public class SetZoneActivity extends AppCompatActivity {  //extends AppCompatAct
         xzoneList=dbHelper.getAllXzones();
 
         List<String> names = new ArrayList<>();
-        List<String> lengths = new ArrayList<>();
+        //List<String> lengths = new ArrayList<>();
 
         for (int i = 0; i < xzoneList.size(); i++) {
             String temp1=xzoneList.get(i).getName();
-            String temp2=xzoneList.get(i).getProximity_length();
+            //String temp2=xzoneList.get(i).getProximity_length();
 
             names.add(temp1);
-            lengths.add(temp2);
+            //lengths.add(temp2);
         }
 
         ArrayAdapter<String> adapter_name =  new ArrayAdapter<String>(this,android.R.layout.select_dialog_singlechoice, names);
-        ArrayAdapter<String> adapter_lengths =  new ArrayAdapter<String>(this,android.R.layout.select_dialog_singlechoice, lengths);
+        //ArrayAdapter<String> adapter_lengths =  new ArrayAdapter<String>(this,android.R.layout.select_dialog_singlechoice, lengths);
 
         zoneName.setThreshold(1);
-        proximityLength.setThreshold(1);
+        //proximityLength.setThreshold(1);
 
         zoneName.setAdapter(adapter_name);
-        proximityLength.setAdapter(adapter_lengths);
+        //proximityLength.setAdapter(adapter_lengths);
 
         //Second most important piece of Code. GUI Handler
         MainActivity.handler = new Handler(Looper.getMainLooper()) {
@@ -243,23 +262,66 @@ public class SetZoneActivity extends AppCompatActivity {  //extends AppCompatAct
             String formattedDate = df.format(c.getTime());
 
             if (i == 1) {
+                Uri soundUri = Uri.parse(ContentResolver.SCHEME_ANDROID_RESOURCE + "://"+ getApplicationContext().getPackageName() + "/" + R.raw.alarm);
                 title = "Penetration notification";
                 content = "At " + formattedDate + " hours something entered the zone!";
+                NotificationCompat.Builder builder = new NotificationCompat.Builder(this)
+                        .setSmallIcon(R.mipmap.ic_launcher_round)
+                        .setContentTitle(title)
+                        .setContentText(content)
+                        .setPriority(NotificationCompat.PRIORITY_HIGH)
+                        .setSound(soundUri)
+                        .setVibrate(new long[]{0, 500, 1000})
+                        .setCategory(NotificationCompat.CATEGORY_MESSAGE);
+
+                Intent notificationIntent = new Intent(this, MainActivity.class);
+                PendingIntent contentIntent = PendingIntent.getActivity(this, 0, notificationIntent, PendingIntent.FLAG_UPDATE_CURRENT);
+                builder.setContentIntent(contentIntent);
+
+                NotificationManager manager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
+                manager.notify(0, builder.build());
             } else if (i == 2) {
                 title = "Exit notification";
                 content = "Something exited the zone!";
+                NotificationCompat.Builder builder = new NotificationCompat.Builder(this)
+                        .setSmallIcon(R.mipmap.ic_launcher_round)
+                        .setContentTitle(title)
+                        .setContentText(content)
+                        .setPriority(NotificationCompat.PRIORITY_HIGH)
+                        .setCategory(NotificationCompat.CATEGORY_MESSAGE);
+
+                Intent notificationIntent = new Intent(this, MainActivity.class);
+                PendingIntent contentIntent = PendingIntent.getActivity(this, 0, notificationIntent, PendingIntent.FLAG_UPDATE_CURRENT);
+                builder.setContentIntent(contentIntent);
+
+                NotificationManager manager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
+                manager.notify(0, builder.build());
             } else if (i == 3) {
                 title = "Stuck notification";
                 content = "Something is stuck inside the zone! Please clear it to allow application to function!";
+                NotificationCompat.Builder builder = new NotificationCompat.Builder(this)
+                        .setSmallIcon(R.mipmap.ic_launcher_round)
+                        .setContentTitle(title)
+                        .setContentText(content)
+                        .setPriority(NotificationCompat.PRIORITY_HIGH)
+                        .setCategory(NotificationCompat.CATEGORY_MESSAGE);
+
+                Intent notificationIntent = new Intent(this, MainActivity.class);
+                PendingIntent contentIntent = PendingIntent.getActivity(this, 0, notificationIntent, PendingIntent.FLAG_UPDATE_CURRENT);
+                builder.setContentIntent(contentIntent);
+
+                NotificationManager manager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
+                manager.notify(0, builder.build());
             }
 
 
-            NotificationCompat.Builder builder = new NotificationCompat.Builder(this)
-                    .setSmallIcon(R.mipmap.ic_launcher_round)
-                    .setContentTitle(title)
-                    .setContentText(content)
-                    .setPriority(NotificationCompat.PRIORITY_HIGH)
-                    .setCategory(NotificationCompat.CATEGORY_MESSAGE);
+            /*
+                NotificationCompat.Builder builder = new NotificationCompat.Builder(this)
+                        .setSmallIcon(R.mipmap.ic_launcher_round)
+                        .setContentTitle(title)
+                        .setContentText(content)
+                        .setPriority(NotificationCompat.PRIORITY_HIGH)
+                        .setCategory(NotificationCompat.CATEGORY_MESSAGE);
 
             Intent notificationIntent = new Intent(this, MainActivity.class);
             PendingIntent contentIntent = PendingIntent.getActivity(this, 0, notificationIntent, PendingIntent.FLAG_UPDATE_CURRENT);
@@ -267,7 +329,10 @@ public class SetZoneActivity extends AppCompatActivity {  //extends AppCompatAct
 
             NotificationManager manager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
             manager.notify(0, builder.build());
+
+             */
         }
+
     }
 
 

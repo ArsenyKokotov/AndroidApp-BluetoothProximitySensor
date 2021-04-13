@@ -4,10 +4,10 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".RestartOldZoneActivity">
+    tools:context=".DeleteActivity">
 
     <Spinner
-        android:id="@+id/spinnerOldZoneName"
+        android:id="@+id/spinnerOldZoneNameToDelete"
         android:layout_width="252dp"
         android:layout_height="38dp"
         app:layout_constraintBottom_toBottomOf="parent"
@@ -16,23 +16,12 @@
         app:layout_constraintTop_toTopOf="parent" />
 
     <Button
-        android:id="@+id/buttonCalibrateOldZone"
-        android:layout_width="126dp"
-        android:layout_height="57dp"
-        android:text="Calibrate"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.498"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/spinnerOldZoneName"
-        app:layout_constraintVertical_bias="0.373" />
-
-    <Button
         android:id="@+id/buttonDeleteOldZone"
         android:layout_width="126dp"
         android:layout_height="57dp"
+        android:layout_marginBottom="156dp"
         android:enabled="false"
-        android:text="Submit"
+        android:text="Delete"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0.498"
@@ -41,7 +30,7 @@
         app:layout_constraintVertical_bias="0.46" />
 
     <ImageView
-        android:id="@+id/imageView4"
+        android:id="@+id/imageView67"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         app:layout_constraintBottom_toBottomOf="parent"
@@ -49,20 +38,20 @@
         app:layout_constraintHorizontal_bias="0.493"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintVertical_bias="0.087"
+        app:layout_constraintVertical_bias="0.053"
         app:srcCompat="@drawable/zone_flag" />
 
     <TextView
-        android:id="@+id/textView9"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Select zone for which you want to restart observation:"
+        android:id="@+id/textView91"
+        android:layout_width="243dp"
+        android:layout_height="24dp"
+        android:text="Select zone that you want to delete:"
         android:textColor="#CC10B3"
-        app:layout_constraintBottom_toTopOf="@+id/spinnerOldZoneName"
+        app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.493"
+        app:layout_constraintHorizontal_bias="0.529"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/imageView4"
-        app:layout_constraintVertical_bias="0.723" />
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintVertical_bias="0.446" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>
