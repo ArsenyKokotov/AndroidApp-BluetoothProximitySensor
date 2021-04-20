@@ -2,7 +2,7 @@ package com.example.xzone.Model;
 
 import java.util.ArrayList;
 import java.util.List;
-
+//USED TO RETRIEVE DATA FROM DATABASE
 public class DayCount {
       List<String> days;
       List<Integer> count;

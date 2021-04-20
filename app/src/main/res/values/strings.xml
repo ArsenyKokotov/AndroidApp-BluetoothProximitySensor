@@ -7,4 +7,7 @@ If you would like to contact us to understand more about this Agreement or wish 
 This document was last updated on March 28, 2021
 
     </string>
+    <string name="main_page_help">New Zone: To create a new observation zone. \n Continue: Pick an old zone to observe. \n Delete zone: Delete a zone</string>
+    <string name="new_zone_help">Calibrate: check if nothing blocks the sensor.\n Submit: create the zone and start observation.\n Stop Sensor: stop observing the zone. \n Restart sensor: restart observation of the current zone.</string>
+    <string name="continue_page">To restart observing an old zone, select the name of the old zone, calibrate the sensor and submit.</string>
 </resources>

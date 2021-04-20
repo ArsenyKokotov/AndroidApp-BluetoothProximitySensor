@@ -261,24 +261,6 @@ public class RestartOldZoneActivity extends AppCompatActivity {
                 NotificationManager manager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
                 manager.notify(0, builder.build());
             }
-
-
-            /*
-                NotificationCompat.Builder builder = new NotificationCompat.Builder(this)
-                        .setSmallIcon(R.mipmap.ic_launcher_round)
-                        .setContentTitle(title)
-                        .setContentText(content)
-                        .setPriority(NotificationCompat.PRIORITY_HIGH)
-                        .setCategory(NotificationCompat.CATEGORY_MESSAGE);
-
-            Intent notificationIntent = new Intent(this, MainActivity.class);
-            PendingIntent contentIntent = PendingIntent.getActivity(this, 0, notificationIntent, PendingIntent.FLAG_UPDATE_CURRENT);
-            builder.setContentIntent(contentIntent);
-
-            NotificationManager manager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
-            manager.notify(0, builder.build());
-
-             */
         }
 
     }

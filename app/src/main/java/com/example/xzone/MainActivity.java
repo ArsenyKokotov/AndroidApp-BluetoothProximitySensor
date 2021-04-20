@@ -70,10 +70,12 @@ public class MainActivity extends AppCompatActivity {
 
     protected DatabaseHelper dbHelper;
 
-    public static int TERMS_AND_CONDITIONS_FLAG=0;
+    public static int TERMS_AND_CONDITIONS_FLAG=0; //sot that terms activity show up only once
     public static String nameHolder;
     public static boolean notificationOnOff=true; //true=on
     public static boolean backgroundWhiteOrBlack=true; //true=white
+
+    private static Context mContext;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -91,7 +93,9 @@ public class MainActivity extends AppCompatActivity {
         zoneName_tv=findViewById(R.id.textViewZoneName);
         toolbar = findViewById(R.id.toolbar);
         dbHelper = new DatabaseHelper(this);
+        mContext=this;
 
+        //go to terms activity upon first activation of app
         if (TERMS_AND_CONDITIONS_FLAG==0) {
             Intent intent = new Intent(MainActivity.this, TermsActivity.class);
             startActivity(intent);
@@ -112,6 +116,8 @@ public class MainActivity extends AppCompatActivity {
                        connectButton.setText("Connect");
                        toolbar.setSubtitle("Device is not connected");
                        status=0;
+                       Intent serviceIntent = new Intent(mContext, ServiceClass.class);
+                       stopService(serviceIntent); //stop old service
                    }
                }
 
@@ -153,6 +159,7 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
+        //go to continue page
         continueButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -165,6 +172,7 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
+        //got to settings page
         settingsButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -173,6 +181,7 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
+        //go to delete zone page
         deleteButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -181,10 +190,6 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
-        //send information to Arduino
-        //String zoneName = getIntent().getStringExtra("zoneName");
-        //int proximityLength = getIntent().getIntExtra("proximityLength", 0);
-        // if both are not null { connectedThread.write(cmdText); }
 
 
 //---------------------------------------------------------------------------------------------------------------------------------//
@@ -232,6 +237,7 @@ public class MainActivity extends AppCompatActivity {
             toolbar.setSubtitle("Device is not connected");
         }
 
+        //change background if signaled
         int color;
         if (backgroundWhiteOrBlack==false) {
             color = Color.parseColor("#545657");
@@ -506,24 +512,6 @@ public class MainActivity extends AppCompatActivity {
                 NotificationManager manager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
                 manager.notify(0, builder.build());
             }
-
-
-            /*
-                NotificationCompat.Builder builder = new NotificationCompat.Builder(this)
-                        .setSmallIcon(R.mipmap.ic_launcher_round)
-                        .setContentTitle(title)
-                        .setContentText(content)
-                        .setPriority(NotificationCompat.PRIORITY_HIGH)
-                        .setCategory(NotificationCompat.CATEGORY_MESSAGE);
-
-            Intent notificationIntent = new Intent(this, MainActivity.class);
-            PendingIntent contentIntent = PendingIntent.getActivity(this, 0, notificationIntent, PendingIntent.FLAG_UPDATE_CURRENT);
-            builder.setContentIntent(contentIntent);
-
-            NotificationManager manager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
-            manager.notify(0, builder.build());
-
-             */
         }
 
     }

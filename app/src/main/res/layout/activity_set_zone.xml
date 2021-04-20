@@ -100,6 +100,7 @@
         android:layout_width="166dp"
         android:layout_height="47dp"
         android:text="Restart sensor"
+        android:textSize="12sp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0.934"

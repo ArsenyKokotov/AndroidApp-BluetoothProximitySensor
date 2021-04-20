@@ -44,15 +44,11 @@ public class SetZoneActivity extends AppCompatActivity {  //extends AppCompatAct
     private static Button restartButton;
     private static AutoCompleteTextView zoneName;
     private static AutoCompleteTextView proximityLength;
-
     protected List<X_zone> xzoneList;
     protected DatabaseHelper dbHelper;
-
-    //public static String nameHolder;
     private static Context mContext;
 
-    //protected static String entry_time;
-    //protected static String exit_time;
+
 
 
     @Override
@@ -111,6 +107,7 @@ public class SetZoneActivity extends AppCompatActivity {  //extends AppCompatAct
                 } else if (name_check!=0) {
                     Toast.makeText(getApplicationContext(), "Such a zone name is taken, please try another", Toast.LENGTH_SHORT).show();
                 } else {
+                    //create new zone and send start signal to Arduino then refresh page
                     String msg ="<" + proximityLength.getText().toString();
                     MainActivity.connectedThread.write(msg);
                     submitButton.setEnabled(false);
@@ -123,7 +120,6 @@ public class SetZoneActivity extends AppCompatActivity {  //extends AppCompatAct
 
                     X_zone newZone = new X_zone(zoneName.getText().toString(), proximityLength.getText().toString());
                     dbHelper.insert_Xzone(newZone);
-                    //dbHelper.createXzoneTable(zoneName.getText().toString());
                     MainActivity.nameHolder=zoneName.getText().toString();
 
                     Intent serviceIntent = new Intent(mContext, ServiceClass.class);
@@ -139,6 +135,7 @@ public class SetZoneActivity extends AppCompatActivity {  //extends AppCompatAct
             }
         });
 
+        //stop sensor
         stopButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -148,6 +145,7 @@ public class SetZoneActivity extends AppCompatActivity {  //extends AppCompatAct
             }
         });
 
+        //restart sensor
         restartButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -163,6 +161,7 @@ public class SetZoneActivity extends AppCompatActivity {  //extends AppCompatAct
     protected void onStart() {
         super.onStart();
 
+        //change background on signal from settings
         int color;
         if (MainActivity.backgroundWhiteOrBlack==false) {
             color = Color.parseColor("#545657");
@@ -179,20 +178,13 @@ public class SetZoneActivity extends AppCompatActivity {  //extends AppCompatAct
 
         for (int i = 0; i < xzoneList.size(); i++) {
             String temp1=xzoneList.get(i).getName();
-            //String temp2=xzoneList.get(i).getProximity_length();
-
             names.add(temp1);
-            //lengths.add(temp2);
         }
 
+        //list of previous zones so that user doesn't repeat himself
         ArrayAdapter<String> adapter_name =  new ArrayAdapter<String>(this,android.R.layout.select_dialog_singlechoice, names);
-        //ArrayAdapter<String> adapter_lengths =  new ArrayAdapter<String>(this,android.R.layout.select_dialog_singlechoice, lengths);
-
         zoneName.setThreshold(1);
-        //proximityLength.setThreshold(1);
-
         zoneName.setAdapter(adapter_name);
-        //proximityLength.setAdapter(adapter_lengths);
 
         //Second most important piece of Code. GUI Handler
         MainActivity.handler = new Handler(Looper.getMainLooper()) {
@@ -313,24 +305,6 @@ public class SetZoneActivity extends AppCompatActivity {  //extends AppCompatAct
                 NotificationManager manager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
                 manager.notify(0, builder.build());
             }
-
-
-            /*
-                NotificationCompat.Builder builder = new NotificationCompat.Builder(this)
-                        .setSmallIcon(R.mipmap.ic_launcher_round)
-                        .setContentTitle(title)
-                        .setContentText(content)
-                        .setPriority(NotificationCompat.PRIORITY_HIGH)
-                        .setCategory(NotificationCompat.CATEGORY_MESSAGE);
-
-            Intent notificationIntent = new Intent(this, MainActivity.class);
-            PendingIntent contentIntent = PendingIntent.getActivity(this, 0, notificationIntent, PendingIntent.FLAG_UPDATE_CURRENT);
-            builder.setContentIntent(contentIntent);
-
-            NotificationManager manager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
-            manager.notify(0, builder.build());
-
-             */
         }
 
     }

@@ -1,5 +1,5 @@
 package com.example.xzone.Model;
-
+//USED TO RETRIEVE DATA FROM DATABASE
 public class X_zone {
     String name;
     String proximity_length;
@@ -25,12 +25,4 @@ public class X_zone {
     public void setProximity_length(String proximity_length) {
         this.proximity_length = proximity_length;
     }
-
-    /*
-    public void increment_frequency(int index) {
-        int a=hourly_frequency[index];
-        ++a;
-        hourly_frequency[index]=a;
-    }
-     */
 }

@@ -1,9 +1,107 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<ScrollView
+    xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".HelpActivity">
+    tools:context=".MainActivity">
 
-</androidx.constraintlayout.widget.ConstraintLayout>
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+
+        <ImageView
+            android:layout_marginTop="50dp"
+            android:id="@+id/imageViewZone"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            app:srcCompat="@drawable/zone_flag"
+            android:layout_centerHorizontal="true"/>
+
+        <TextView
+            android:id="@+id/helpText"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_below="@+id/imageViewZone"
+            android:layout_centerHorizontal="true"
+            android:text="Help Page"
+            android:textColor="#AF174B"
+            android:layout_marginStart="10dp"
+            android:layout_marginLeft="10dp"
+            android:layout_marginTop="10dp"
+            android:layout_marginEnd="10dp"
+            android:layout_marginRight="10dp"
+            android:layout_marginBottom="10dp"
+            android:textSize="36sp" />
+
+    <ImageView
+        android:layout_below="@+id/helpText"
+        android:layout_marginTop="50dp"
+        android:id="@+id/imageView14"
+        android:layout_width="302dp"
+        android:layout_height="417dp"
+        app:srcCompat="@drawable/main_page"
+        android:layout_centerHorizontal="true"/>
+
+    <TextView
+        android:id="@+id/textView10"
+        android:layout_width="296dp"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/imageView14"
+        android:layout_centerHorizontal="true"
+        android:layout_marginStart="10dp"
+        android:layout_marginLeft="10dp"
+        android:layout_marginTop="10dp"
+        android:layout_marginEnd="10dp"
+        android:layout_marginRight="10dp"
+        android:layout_marginBottom="10dp"
+        android:text="@string/main_page_help" />
+
+    <ImageView
+        android:layout_marginTop="50dp"
+        android:id="@+id/imageView15"
+        android:layout_width="302dp"
+        android:layout_height="417dp"
+        app:srcCompat="@drawable/new_zone"
+        android:layout_below="@+id/textView10"
+        android:layout_centerHorizontal="true"/>
+
+    <TextView
+        android:id="@+id/textView11"
+        android:layout_width="310dp"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/imageView15"
+        android:layout_centerHorizontal="true"
+        android:layout_marginStart="10dp"
+        android:layout_marginLeft="10dp"
+        android:layout_marginTop="10dp"
+        android:layout_marginEnd="10dp"
+        android:layout_marginRight="10dp"
+        android:layout_marginBottom="10dp"
+        android:text="@string/new_zone_help" />
+
+    <ImageView
+        android:layout_marginTop="50dp"
+        android:id="@+id/imageView16"
+        android:layout_width="302dp"
+        android:layout_height="417dp"
+        app:srcCompat="@drawable/continue_page"
+        android:layout_below="@+id/textView11"
+        android:layout_centerHorizontal="true"/>
+
+    <TextView
+        android:id="@+id/textView12"
+        android:layout_width="316dp"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/imageView16"
+        android:layout_centerHorizontal="true"
+        android:layout_marginStart="10dp"
+        android:layout_marginLeft="10dp"
+        android:layout_marginTop="10dp"
+        android:layout_marginEnd="10dp"
+        android:layout_marginRight="10dp"
+        android:layout_marginBottom="10dp"
+        android:text="@string/continue_page" />
+    </RelativeLayout>
+</ScrollView>

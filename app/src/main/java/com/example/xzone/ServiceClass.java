@@ -50,13 +50,14 @@ public class ServiceClass extends Service {
         Intent notificationIntent = new Intent(this, SetZoneActivity.class);
         PendingIntent pendingIntent = PendingIntent.getActivity(this, 0, notificationIntent, 0);
 
-        Notification notification = new NotificationCompat.Builder(this, CHANNEL_1_ID)
+        Notification notification = new NotificationCompat.Builder(this, CHANNEL_1_ID) //use foreground run class
                 .setSmallIcon(R.drawable.ic_baseline_looks_one_24)
                 .setContentTitle("Xzone")
                 .setContentText("Xzone is currently running!")
                 .setContentIntent(pendingIntent)
                 .build();
 
+        //handle exchange info from bluetooth in the background
         MainActivity.handler = new Handler(Looper.getMainLooper()) {
             @Override
             public void handleMessage(Message msg){
@@ -170,24 +171,6 @@ public class ServiceClass extends Service {
                 NotificationManager manager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
                 manager.notify(0, builder.build());
             }
-
-
-            /*
-                NotificationCompat.Builder builder = new NotificationCompat.Builder(this)
-                        .setSmallIcon(R.mipmap.ic_launcher_round)
-                        .setContentTitle(title)
-                        .setContentText(content)
-                        .setPriority(NotificationCompat.PRIORITY_HIGH)
-                        .setCategory(NotificationCompat.CATEGORY_MESSAGE);
-
-            Intent notificationIntent = new Intent(this, MainActivity.class);
-            PendingIntent contentIntent = PendingIntent.getActivity(this, 0, notificationIntent, PendingIntent.FLAG_UPDATE_CURRENT);
-            builder.setContentIntent(contentIntent);
-
-            NotificationManager manager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
-            manager.notify(0, builder.build());
-
-             */
         }
 
     }

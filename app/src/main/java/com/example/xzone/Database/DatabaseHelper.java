@@ -143,7 +143,17 @@ public class DatabaseHelper extends SQLiteOpenHelper {
                     } while(cursor.moveToNext());
 
                     if (buffer_diff>0) {
-                        statement="The day with the longest time spent inside the zone was: "+ day;
+
+                        if (buffer_diff>60000) {
+                            statement="The day with the longest time spent inside the zone was: "+ day + ", time spent inside: "+ buffer_diff/60000+ " (min)";
+                        }
+                        else if (buffer_diff>1000) {
+                            statement="The day with the longest time spent inside the zone was: "+ day + ", time spent inside: "+ buffer_diff/1000+ " (s)";
+                        }
+                        else {
+                            statement="The day with the longest time spent inside the zone was: "+ day + ", time spent inside: "+ buffer_diff+ " (ms)";
+                        }
+
                     }
                     return statement;
                 }
@@ -191,7 +201,15 @@ public class DatabaseHelper extends SQLiteOpenHelper {
                     } while(cursor.moveToNext());
 
                     if (buffer_diff>0) {
-                        statement="The hour with the longest time spent inside the zone was: "+ day;
+                        if (buffer_diff>60000) {
+                            statement="The day with the longest time spent inside the zone was: "+ day + ", time spent inside: "+ buffer_diff/60000+ " (min)";
+                        }
+                        else if (buffer_diff>1000) {
+                            statement="The day with the longest time spent inside the zone was: "+ day + ", time spent inside: "+ buffer_diff/1000+ " (s)";
+                        }
+                        else {
+                            statement="The day with the longest time spent inside the zone was: "+ day + ", time spent inside: "+ buffer_diff+ " (ms)";
+                        }
                     }
                     return statement;
                 }

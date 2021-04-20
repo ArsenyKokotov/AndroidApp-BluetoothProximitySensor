@@ -45,6 +45,9 @@ public class StatActivity extends AppCompatActivity {
     private static DatabaseHelper dbHelper;
     private static ListView dataTable;
     private static String nameOfZone;
+    private static GraphView graph1;
+    private static GraphView graph2;
+    private static GraphView graph3;
 
     LineGraphSeries<DataPoint> series;
 
@@ -60,6 +63,9 @@ public class StatActivity extends AppCompatActivity {
         dataTable=findViewById(R.id.dataTable);
         dbHelper = new DatabaseHelper(this);
         xzoneList=dbHelper.getAllXzones();
+        graph1 = findViewById(R.id.graph1);
+        graph2 = findViewById(R.id.graph2);
+        graph3 = findViewById(R.id.graph3);
 
 
         List<String> names = new ArrayList<>();
@@ -151,9 +157,6 @@ public class StatActivity extends AppCompatActivity {
     void loadData(String name, String choice) {
 
         List<String> dataRows=new ArrayList<>();
-        GraphView graph1 = (GraphView) findViewById(R.id.graph1);
-        GraphView graph2 = (GraphView) findViewById(R.id.graph2);
-        GraphView graph3 = (GraphView) findViewById(R.id.graph2);
 
         graph1.setVisibility(View.GONE);
         graph2.setVisibility(View.GONE);

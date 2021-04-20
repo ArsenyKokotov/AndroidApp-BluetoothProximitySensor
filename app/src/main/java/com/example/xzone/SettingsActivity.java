@@ -37,6 +37,7 @@ public class SettingsActivity extends AppCompatActivity {
             GUI.setChecked(false);
         }
 
+        //disable/enable notifications
         Notifications.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             @Override
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
@@ -54,6 +55,7 @@ public class SettingsActivity extends AppCompatActivity {
             }
         });
 
+        //change background color
         GUI.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             @Override
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
